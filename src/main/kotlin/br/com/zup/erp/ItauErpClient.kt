@@ -8,6 +8,6 @@ import io.micronaut.http.client.annotation.Client
 interface ItauErpClient {
 
     @Get("/{clientId}")
-    fun consulta(clientId: String) : HttpResponse<DadosDoClienteResponse>
+    fun consulta(clientId: String) : HttpResponse<Any?>
 
 }

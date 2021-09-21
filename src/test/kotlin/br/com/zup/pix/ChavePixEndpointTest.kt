@@ -11,6 +11,8 @@ import io.grpc.StatusRuntimeException
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
+import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.exceptions.HttpClientException
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.test.annotation.MockBean
@@ -27,7 +29,7 @@ import org.mockito.Mockito
 @MicronautTest(transactional = false)
 internal class ChavePixEndpointTest(
     val grpcCliente: DesafioPixServiceGrpc.DesafioPixServiceBlockingStub,
-    val chavePixRepository: ChavePixRepository,
+    val chavePixRepository: ChavePixRepository
 ) {
 
     @Inject lateinit var itauErpClient: ItauErpClient
@@ -44,6 +46,9 @@ internal class ChavePixEndpointTest(
 
     @Test
     internal fun `deve cadastrar uma nova chave pix`() {
+
+        // não deveria precisar disso se soubesse usar os mocks só onde preciso
+        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenReturn(HttpResponse.ok())
 
         val response = grpcCliente.cadastra(
             ChavePixRequest.newBuilder()
@@ -63,15 +68,15 @@ internal class ChavePixEndpointTest(
     @Test
     internal fun `nao deve cadastrar uma chave pix se o cliente nao existir`() {
 
+        // não deveria precisar disso se soubesse usar os mocks só onde preciso
+        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenReturn(HttpResponse.notFound())
+
         val request = ChavePixRequest.newBuilder()
-            .setClientId("0d1bb194-3c52-4e67-8c35-a93c0af1111z")
+            .setClientId("0d073d52-1b03-11ec-9621-0242ac13000")
             .setTipoChave(TipoChave.EMAIL)
             .setChavePix("fulano@zup.com.br")
             .setTipoConta(TipoConta.CONTA_POUPANCA)
             .build()
-
-        Mockito.`when`(itauErpClient.consulta("0d1bb194-3c52-4e67-8c35-a93c0af1111z")).thenThrow(
-            HttpClientResponseException::class.java)
 
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(request)
@@ -79,7 +84,7 @@ internal class ChavePixEndpointTest(
 
         with(error) {
             assertEquals(Status.NOT_FOUND.code, status.code)
-            assertEquals("cliente não encontrado", status.description)
+            assertEquals("Cliente ${request.clientId} não encontrado", status.description)
         }
 
     }
@@ -87,14 +92,17 @@ internal class ChavePixEndpointTest(
     @Test
     internal fun `nao deve cadastrar uma chave duplicada`() {
 
-        val response = grpcCliente.cadastra(
-            ChavePixRequest.newBuilder()
-                .setClientId("0d1bb194-3c52-4e67-8c35-a93c0af9284f")
-                .setTipoChave(TipoChave.EMAIL)
-                .setChavePix("fulano@zup.com.br")
-                .setTipoConta(TipoConta.CONTA_POUPANCA)
-                .build()
-        )
+        // não deveria precisar disso se soubesse usar os mocks só onde preciso
+        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenReturn(HttpResponse.ok())
+
+        val request = ChavePixRequest.newBuilder()
+            .setClientId("0d1bb194-3c52-4e67-8c35-a93c0af9284f")
+            .setTipoChave(TipoChave.EMAIL)
+            .setChavePix("fulano@zup.com.br")
+            .setTipoConta(TipoConta.CONTA_POUPANCA)
+            .build()
+
+        val response = grpcCliente.cadastra(request)
 
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(
@@ -109,7 +117,7 @@ internal class ChavePixEndpointTest(
 
         with(error) {
             assertEquals(Status.ALREADY_EXISTS.code, status.code)
-            assertEquals("chave pix existente", status.description)
+            assertEquals("chave pix ${request.chavePix} existente", status.description)
         }
     }
 
@@ -133,7 +141,7 @@ internal class ChavePixEndpointTest(
 
     }
 
-    @Test()
+    @Test
     internal fun `nao deve cadastrar uma nova chave pix se o ERP estiver off`() {
 
         val request = ChavePixRequest.newBuilder()
@@ -143,12 +151,13 @@ internal class ChavePixEndpointTest(
             .setTipoConta(TipoConta.CONTA_POUPANCA)
             .build()
 
-
-        Mockito.`when`(itauErpClient.consulta("de95a228-1f27-4ad2-907e-e5a2d816e9bc")).thenThrow(HttpClientException::class.java)
+        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenThrow(HttpClientException::class.java)
 
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(request)
         }
+
+        Mockito.reset(itauErpClient)
 
         with(error) {
             assertEquals(Status.INTERNAL.code, status.code)
@@ -166,18 +175,24 @@ internal class ChavePixEndpointTest(
             .setTipoConta(TipoConta.CONTA_POUPANCA)
             .build()
 
-        Mockito.`when`(itauErpClient.consulta("de95a228-1f27-4ad2-907e-e5a2d816e9bc")).thenThrow(
-            RuntimeException::class.java)
+        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenThrow(RuntimeException())
 
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(request)
         }
+
+        Mockito.reset(itauErpClient)
 
         with(error) {
             assertEquals(Status.INTERNAL.code, status.code)
             assertEquals("Algo deu muito ruim", status.description)
         }
 
+    }
+
+    @MockBean(ItauErpClient::class) // bean a ser mockado
+    fun itauErpClient() : ItauErpClient {
+        return Mockito.mock(ItauErpClient::class.java)
     }
 
     @Factory
@@ -188,8 +203,4 @@ internal class ChavePixEndpointTest(
         }
     }
 
-    @MockBean(ItauErpClient::class) // bean a ser mockado
-    fun itauErpMock() : ItauErpClient {
-        return Mockito.mock(ItauErpClient::class.java)
-    }
 }

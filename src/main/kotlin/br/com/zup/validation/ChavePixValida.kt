@@ -6,6 +6,8 @@ import io.micronaut.core.annotation.AnnotationValue
 import io.micronaut.validation.validator.constraints.ConstraintValidator
 import io.micronaut.validation.validator.constraints.ConstraintValidatorContext
 import jakarta.inject.Singleton
+import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator
+import org.hibernate.validator.internal.constraintvalidators.hv.br.CPFValidator
 import javax.validation.Constraint
 
 @MustBeDocumented
@@ -29,51 +31,53 @@ class ChavePixValidator : ConstraintValidator<ChavePixValida, NovaChavePixDto> {
             return false
         }
 
-        if (value.tipoChave == TipoChave.TIPO_CHAVE_UNKNOWN) {
-            return false
-        }
-
-        when(value.tipoChave) {
+        when (value.tipoChave) {
             TipoChave.CHAVE_ALEATORIA -> {
                 context.messageTemplate("chave aleatória não é nula")
                 return (value.chavePix.isNullOrBlank())
             }
             TipoChave.CPF -> {
                 context.messageTemplate("cpf inválido")
-                return validaCpf(value.chavePix!!)
+                return validaCpf(value.chavePix)
             }
             TipoChave.TELEFONE_CELULAR -> {
                 context.messageTemplate("telefone celular inválido")
-                return validaTelefoneCelular(value.chavePix!!)
+                return validaTelefoneCelular(value.chavePix)
             }
             TipoChave.EMAIL -> {
                 context.messageTemplate("e-mail inválido")
-                return validaEmail(value.chavePix!!)
+                return validaEmail(value.chavePix)
             }
             else -> return false
         }
 
     }
 
-    fun validaCpf(chavePix: String): Boolean {
-        if (chavePix.isNotBlank()) {
-            return "^[0-9]{11}".toRegex().matches(chavePix)
+    fun validaCpf(chavePix: String?): Boolean {
+        if (chavePix.isNullOrBlank()) {
+            return false
         }
-        return false
+        return CPFValidator().run {
+            initialize(null)
+            isValid(chavePix, null)
+        }
     }
 
-    fun validaTelefoneCelular(chavePix: String): Boolean {
-        if (chavePix.isNotBlank()) {
-            return "^\\+[1-9][0-9]\\d{1,14}\$".toRegex().matches(chavePix)
+    fun validaTelefoneCelular(chavePix: String?): Boolean {
+        if (chavePix.isNullOrBlank()) {
+            return false
         }
-        return false
+        return "^\\+[1-9][0-9]\\d{1,14}\$".toRegex().matches(chavePix)
     }
 
-    fun validaEmail(chavePix: String): Boolean {
-        if (chavePix.isNotBlank()) {
-            return "^([_a-zA-Z0-9-]+(\\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)*(\\.[a-zA-Z]{1,6}))?$".toRegex().matches(chavePix)
+    fun validaEmail(chavePix: String?): Boolean {
+        if (chavePix.isNullOrBlank()) {
+            return false
         }
-        return false
+        return EmailValidator().run {
+            initialize(null)
+            isValid(chavePix, null)
+        }
     }
 
 }
