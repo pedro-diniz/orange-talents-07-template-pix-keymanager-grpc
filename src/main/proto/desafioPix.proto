@@ -8,13 +8,31 @@ option objc_class_prefix = "HLW";
 package br.com.zup;
 
 service DesafioPixService {
-  rpc send (DesafioPixRequest) returns (DesafioPixReply) {}
+  rpc cadastra (ChavePixRequest) returns (ChavePixResponse) {}
 }
 
-message DesafioPixRequest {
-  string name = 1;
+enum TipoChave {
+  TIPO_CHAVE_UNKNOWN = 0;
+  CPF = 1;
+  TELEFONE_CELULAR = 2;
+  EMAIL = 3;
+  CHAVE_ALEATORIA = 4;
 }
 
-message DesafioPixReply {
-  string message = 1;
+enum TipoConta {
+  TIPO_CONTA_UNKNOWN = 0;
+  CONTA_CORRENTE = 1;
+  CONTA_POUPANCA = 2;
+}
+
+message ChavePixRequest {
+  string clientId = 1;
+  TipoChave tipoChave = 2;
+  string chavePix = 3;
+  TipoConta tipoConta = 4;
+
+}
+
+message ChavePixResponse {
+  int64 pixId = 1;
 }

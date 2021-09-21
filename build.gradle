@@ -39,10 +39,13 @@ dependencies {
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:testcontainers")
     implementation("io.micronaut:micronaut-validation")
+    implementation("org.hibernate:hibernate-validator:7.0.1.Final")
+    testImplementation("com.h2database:h2")
+    testImplementation("org.mockito:mockito-core:3.8.0")
 
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-    testImplementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut:micronaut-http-client")
 
 }
 
