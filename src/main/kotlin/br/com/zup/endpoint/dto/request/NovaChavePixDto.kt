@@ -4,6 +4,7 @@ import br.com.zup.TipoChave
 import br.com.zup.TipoConta
 import br.com.zup.model.ChavePix
 import br.com.zup.pix.ChavePixValida
+import br.com.zup.service.bcb.dto.request.CreatePixKeyRequest
 import br.com.zup.utils.validation.UUIDValido
 import io.micronaut.core.annotation.Introspected
 import java.util.*
@@ -16,19 +17,35 @@ import javax.validation.constraints.NotNull
 data class NovaChavePixDto(
     @field:NotBlank @UUIDValido val clientId: String,
     @field:NotNull @Enumerated(EnumType.STRING) val tipoChave: TipoChave,
-    var chavePix: String?,
+    var chavePix: String? = null,
     @field:NotNull @Enumerated(EnumType.STRING) val tipoConta: TipoConta
 ) {
     fun toModel(): ChavePix {
+
+        if (tipoChave == TipoChave.CPF && chavePix!!.contains("-") && chavePix!!.contains(".")) {
+            chavePix = trimCpf()
+        }
+
         return ChavePix(
-            clientId, tipoChave, valorChaveOuUUID(), tipoConta
+            clientId, tipoChave, chavePix!!, tipoConta
         )
     }
 
-    fun valorChaveOuUUID() : String {
-        if (tipoChave == TipoChave.CHAVE_ALEATORIA) {
-            chavePix = UUID.randomUUID().toString()
-        }
-        return chavePix!!
+    fun toBcbRequest() : CreatePixKeyRequest {
+        return CreatePixKeyRequest(
+            tipoChave = tipoChave,
+            chave = chavePix!!,
+            tipoConta = tipoConta,
+        )
     }
+
+    fun trimCpf() : String{
+        return chavePix!!.replace(".","").replace("-", "")
+    }
+
+    override fun toString(): String {
+        return "NovaChavePixDto(clientId='$clientId', tipoChave=$tipoChave, tipoConta=$tipoConta)"
+    }
+
+
 }

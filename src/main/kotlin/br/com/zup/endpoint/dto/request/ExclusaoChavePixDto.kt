@@ -1,5 +1,6 @@
 package br.com.zup.endpoint.dto.request
 
+import br.com.zup.service.bcb.dto.request.DeletePixKeyRequest
 import br.com.zup.utils.validation.UUIDValido
 import io.micronaut.core.annotation.Introspected
 import javax.validation.constraints.NotBlank
@@ -8,4 +9,10 @@ import javax.validation.constraints.NotBlank
 data class ExclusaoChavePixDto(
     @field:NotBlank @UUIDValido val clientId: String,
     @field:NotBlank val chavePix: String
-)
+) {
+
+    fun toBcbRequest() : DeletePixKeyRequest {
+        return DeletePixKeyRequest(chavePix)
+    }
+
+}

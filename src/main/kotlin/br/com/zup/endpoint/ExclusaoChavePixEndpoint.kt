@@ -4,6 +4,7 @@ import br.com.zup.ConfirmaExclusaoResponse
 import br.com.zup.ExclusaoChavePixRequest
 import br.com.zup.ExclusaoChavePixServiceGrpc
 import br.com.zup.repository.ChavePixRepository
+import br.com.zup.service.bcb.BcbClient
 import br.com.zup.service.erp.ItauErpClient
 import br.com.zup.utils.extensions.validate
 import io.grpc.Status
@@ -18,6 +19,7 @@ import javax.validation.ConstraintViolationException
 class ExclusaoChavePixEndpoint(
     val repository: ChavePixRepository,
     val itauErpClient: ItauErpClient,
+    val bcbClient: BcbClient,
     val validator: Validator
 ) : ExclusaoChavePixServiceGrpc.ExclusaoChavePixServiceImplBase() {
 
@@ -68,8 +70,22 @@ class ExclusaoChavePixEndpoint(
                 return
             }
 
-            // 5. tudo passou? apago a chave pix
-            logger.info("Apagando a chave Pix")
+            logger.info("Chave pix pertence ao solicitante. Solicitando deleção ao o BCB")
+            // 5. a chave existe e o solicitante é o dono? bora comunicar com o BCB
+            val bcbDeleteRequest = exclusaoChavePix.toBcbRequest()
+
+            val consultaBcb = bcbClient.apagaBcb(exclusaoChavePix.chavePix, bcbDeleteRequest)
+
+            if (consultaBcb.code() == 403) {
+                logger.error("Proibido realizar a operação")
+                responseObserver.onError(Status.PERMISSION_DENIED
+                    .withDescription("Proibido realizar a operação de deleção da chave ${exclusaoChavePix.chavePix}")
+                    .asRuntimeException()
+                )
+            }
+
+            // 6. tudo passou? apago a chave pix
+            logger.info("Deleção de chave autorizada pelo BCB. Apagando a chave pix")
             repository.delete(chavePix)
             logger.info("Chave pix apagada")
             responseObserver.onNext(ConfirmaExclusaoResponse.newBuilder()
