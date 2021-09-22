@@ -1,4 +1,4 @@
-package br.com.zup.erp
+package br.com.zup.service.erp
 
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Get

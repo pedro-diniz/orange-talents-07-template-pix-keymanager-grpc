@@ -1,8 +1,10 @@
-package br.com.zup.pix
+package br.com.zup.endpoint.dto.request
 
 import br.com.zup.TipoChave
 import br.com.zup.TipoConta
-import br.com.zup.validation.UUIDValido
+import br.com.zup.model.ChavePix
+import br.com.zup.pix.ChavePixValida
+import br.com.zup.utils.validation.UUIDValido
 import io.micronaut.core.annotation.Introspected
 import java.util.*
 import javax.persistence.EnumType

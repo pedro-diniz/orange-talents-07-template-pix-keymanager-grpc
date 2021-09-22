@@ -1,10 +1,11 @@
-package br.com.zup.pix
+package br.com.zup.endpoint
 
 import br.com.zup.ChavePixRequest
 import br.com.zup.DesafioPixServiceGrpc
 import br.com.zup.TipoChave
 import br.com.zup.TipoConta
-import br.com.zup.erp.ItauErpClient
+import br.com.zup.service.erp.ItauErpClient
+import br.com.zup.repository.ChavePixRepository
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -12,9 +13,7 @@ import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.exceptions.HttpClientException
-import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
@@ -157,8 +156,6 @@ internal class ChavePixEndpointTest(
             grpcCliente.cadastra(request)
         }
 
-        Mockito.reset(itauErpClient)
-
         with(error) {
             assertEquals(Status.INTERNAL.code, status.code)
             assertEquals("ERP do Itaú encontra-se indisponível", status.description)
@@ -180,8 +177,6 @@ internal class ChavePixEndpointTest(
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(request)
         }
-
-        Mockito.reset(itauErpClient)
 
         with(error) {
             assertEquals(Status.INTERNAL.code, status.code)

@@ -1,4 +1,4 @@
-package br.com.zup.validation
+package br.com.zup.utils.validation
 
 import io.micronaut.core.annotation.AnnotationValue
 import io.micronaut.validation.validator.constraints.ConstraintValidator

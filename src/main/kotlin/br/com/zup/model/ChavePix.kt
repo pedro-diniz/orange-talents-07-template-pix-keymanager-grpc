@@ -1,4 +1,4 @@
-package br.com.zup.pix
+package br.com.zup.model
 
 import br.com.zup.TipoChave
 import br.com.zup.TipoConta

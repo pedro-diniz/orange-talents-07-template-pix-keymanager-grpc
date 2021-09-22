@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "br.com.zup";
+option java_outer_classname = "ExclusaoChavePix";
+option objc_class_prefix = "HLW";
+
+package br.com.zup;
+
+service ExclusaoChavePixService {
+  rpc excluiChave (ExclusaoChavePixRequest) returns (ConfirmaExclusaoResponse) {}
+}
+
+message ExclusaoChavePixRequest {
+  string clientId = 1;
+  string chavePix = 2;
+}
+
+message ConfirmaExclusaoResponse {
+  string mensagem = 1;
+}

@@ -1,10 +1,11 @@
-package br.com.zup.pix
+package br.com.zup.endpoint
 
 import br.com.zup.ChavePixRequest
 import br.com.zup.ChavePixResponse
 import br.com.zup.DesafioPixServiceGrpc
-import br.com.zup.erp.ItauErpClient
-import br.com.zup.extensions.validate
+import br.com.zup.service.erp.ItauErpClient
+import br.com.zup.utils.extensions.validate
+import br.com.zup.repository.ChavePixRepository
 import io.grpc.Status
 import io.grpc.stub.StreamObserver
 import io.micronaut.http.client.exceptions.HttpClientException
@@ -47,7 +48,7 @@ class ChavePixEndpoint (val repository: ChavePixRepository,
             // 3. consulto o ERP pra ver se o cliente existe
             val consulta = itauErpClient.consulta(request.clientId)
 
-            if (consulta.code() == 404) { // pq tomo NPE aqui nos testes????
+            if (consulta.code() == 404) {
                 logger.error("Cliente não encontrado 404")
                 responseObserver.onError(Status.NOT_FOUND
                         .withDescription("Cliente ${request.clientId} não encontrado")

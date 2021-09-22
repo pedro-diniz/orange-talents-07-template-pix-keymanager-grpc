@@ -2,6 +2,7 @@ package br.com.zup.pix
 
 import br.com.zup.TipoChave
 import br.com.zup.TipoConta
+import br.com.zup.endpoint.dto.request.NovaChavePixDto
 import io.micronaut.core.annotation.AnnotationValue
 import io.micronaut.validation.validator.constraints.ConstraintValidator
 import io.micronaut.validation.validator.constraints.ConstraintValidatorContext

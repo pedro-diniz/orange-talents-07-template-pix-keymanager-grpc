@@ -1,4 +1,4 @@
-package br.com.zup.erp
+package br.com.zup.service.erp
 
 import io.micronaut.core.annotation.Introspected
 

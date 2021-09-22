@@ -2,7 +2,7 @@ package br.com.zup.validation
 
 import br.com.zup.TipoChave
 import br.com.zup.TipoConta
-import br.com.zup.pix.NovaChavePixDto
+import br.com.zup.endpoint.dto.request.NovaChavePixDto
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.micronaut.validation.validator.Validator
 import org.junit.jupiter.api.Test
@@ -188,7 +188,7 @@ internal class ChavePixValidatorTest(
     }
 
     @Test
-    internal fun `nao deve passar com tipo conta unknown`() {
+    internal fun `nao deve passar com tipo conta unknown nem com UUID invalido`() {
         val novaChavePixDto = NovaChavePixDto(
             "e56b7d32-1b23-11ec-9621-0242ac131111z",
             TipoChave.CPF,
@@ -197,6 +197,14 @@ internal class ChavePixValidatorTest(
         )
 
         val setErros = validator.validate(novaChavePixDto)
+
+        val listaMensagensErro = mutableListOf<String>()
+        for (erro in setErros) {
+            listaMensagensErro.add(erro.message)
+        }
+
         assertTrue(setErros.isNotEmpty())
+        assertTrue(setErros.size == 2)
+        assertTrue("UUID inválido" in listaMensagensErro)
     }
 }
