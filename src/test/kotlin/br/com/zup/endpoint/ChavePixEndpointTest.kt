@@ -4,7 +4,6 @@ import br.com.zup.ChavePixRequest
 import br.com.zup.DesafioPixServiceGrpc
 import br.com.zup.TipoChave
 import br.com.zup.TipoConta
-import br.com.zup.service.erp.ItauErpClient
 import br.com.zup.repository.ChavePixRepository
 import br.com.zup.service.bcb.BcbClient
 import br.com.zup.service.bcb.dto.AccountType
@@ -14,6 +13,9 @@ import br.com.zup.service.bcb.dto.request.CreatePixKeyRequest
 import br.com.zup.service.bcb.dto.response.BankAccountResponse
 import br.com.zup.service.bcb.dto.response.CreatePixKeyResponse
 import br.com.zup.service.bcb.dto.response.OwnerResponse
+import br.com.zup.service.erp.ItauErpClient
+import br.com.zup.service.erp.dto.response.DadosDoClienteResponse
+import br.com.zup.service.erp.dto.response.InstituicaoResponse
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -31,7 +33,11 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.ArgumentMatcher
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.internal.matchers.InstanceOf
+import org.mockito.internal.progress.ThreadSafeMockingProgress
 import java.time.LocalDateTime
 import java.util.*
 
@@ -57,21 +63,29 @@ internal class ChavePixEndpointTest(
     @Test
     internal fun `deve cadastrar uma nova chave pix`() {
 
-        // não deveria precisar disso se soubesse usar os mocks só onde preciso
-        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenReturn(HttpResponse.ok())
+        val request = ChavePixRequest.newBuilder()
+            .setClientId("0d1bb194-3c52-4e67-8c35-a93c0af9284f")
+            .setTipoChave(TipoChave.EMAIL)
+            .setChavePix("fulano@zup.com.br")
+            .setTipoConta(TipoConta.CONTA_CORRENTE)
+            .build()
 
-        val bcbRequest = CreatePixKeyRequest(TipoChave.EMAIL, "fulano@zup.com.br", TipoConta.CONTA_POUPANCA)
-
-        val response = grpcCliente.cadastra(
-            ChavePixRequest.newBuilder()
-                .setClientId("0d1bb194-3c52-4e67-8c35-a93c0af9284f")
-                .setTipoChave(TipoChave.EMAIL)
-                .setChavePix("fulano@zup.com.br")
-                .setTipoConta(TipoConta.CONTA_POUPANCA)
-                .build()
+        val erpResponse : HttpResponse<DadosDoClienteResponse?> = HttpResponse.ok(
+            DadosDoClienteResponse(
+                request.clientId,
+                "Pedro Diniz",
+                "12345678909",
+                InstituicaoResponse(
+                    "ITAÚ UNIBANCO S.A.",
+                    "60701190"
+                )
+            )
         )
 
-        Mockito.`when`(bcbClient.cadastraBcb(bcbRequest)).thenReturn(HttpResponse.ok())
+        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenReturn(erpResponse)
+        Mockito.`when`(bcbClient.cadastraBcb(AnyPixKey.paraCACC(TipoChave.EMAIL))).thenReturn(HttpResponse.ok())
+
+        val response = grpcCliente.cadastra(request)
 
         with(response) {
             assertNotNull(pixId)
@@ -87,14 +101,12 @@ internal class ChavePixEndpointTest(
 
         val request = ChavePixRequest.newBuilder()
             .setClientId("0d073d52-1b03-11ec-9621-0242ac13000")
-            .setTipoChave(TipoChave.EMAIL)
-            .setChavePix("fulano@zup.com.br")
+            .setTipoChave(TipoChave.CPF)
+            .setChavePix("619.460.970-20")
             .setTipoConta(TipoConta.CONTA_POUPANCA)
             .build()
 
-        val bcbRequest = CreatePixKeyRequest(TipoChave.EMAIL, "fulano@zup.com.br", TipoConta.CONTA_POUPANCA)
-
-        Mockito.`when`(bcbClient.cadastraBcb(bcbRequest)).thenReturn(HttpResponse.ok())
+        Mockito.`when`(bcbClient.cadastraBcb(AnyPixKey.paraCpf(request.chavePix))).thenReturn(HttpResponse.ok())
 
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(request)
@@ -115,14 +127,12 @@ internal class ChavePixEndpointTest(
 
         val request = ChavePixRequest.newBuilder()
             .setClientId("0d1bb194-3c52-4e67-8c35-a93c0af9284f")
-            .setTipoChave(TipoChave.EMAIL)
-            .setChavePix("fulano@zup.com.br")
+            .setTipoChave(TipoChave.TELEFONE_CELULAR)
+            .setChavePix("+5584996327131")
             .setTipoConta(TipoConta.CONTA_POUPANCA)
             .build()
 
-        val bcbRequest = CreatePixKeyRequest(TipoChave.EMAIL, "fulano@zup.com.br", TipoConta.CONTA_POUPANCA)
-
-        Mockito.`when`(bcbClient.cadastraBcb(bcbRequest)).thenReturn(HttpResponse.ok())
+        Mockito.`when`(bcbClient.cadastraBcb(AnyPixKey.paraSVGS(TipoChave.TELEFONE_CELULAR))).thenReturn(HttpResponse.ok())
 
         val response = grpcCliente.cadastra(request)
 
@@ -130,8 +140,8 @@ internal class ChavePixEndpointTest(
             grpcCliente.cadastra(
                 ChavePixRequest.newBuilder()
                     .setClientId("de95a228-1f27-4ad2-907e-e5a2d816e9bc")
-                    .setTipoChave(TipoChave.EMAIL)
-                    .setChavePix("fulano@zup.com.br")
+                    .setTipoChave(TipoChave.TELEFONE_CELULAR)
+                    .setChavePix("+5584996327131")
                     .setTipoConta(TipoConta.CONTA_CORRENTE)
                     .build()
             )
@@ -173,18 +183,16 @@ internal class ChavePixEndpointTest(
             .setTipoConta(TipoConta.CONTA_POUPANCA)
             .build()
 
-        val bcbRequest = CreatePixKeyRequest(TipoChave.EMAIL, "fulano@zup.com.br", TipoConta.CONTA_POUPANCA)
-
         Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenThrow(HttpClientException(":9091"))
-        Mockito.`when`(bcbClient.cadastraBcb(bcbRequest)).thenReturn(HttpResponse.ok())
+        Mockito.`when`(bcbClient.cadastraBcb(AnyPixKey.paraSVGS(TipoChave.EMAIL))).thenReturn(HttpResponse.ok())
 
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(request)
         }
 
         with(error) {
-            assertEquals(Status.INTERNAL.code, status.code)
-            assertEquals("ERP do Itaú encontra-se indisponível.", status.description)
+            assertEquals(Status.UNAVAILABLE.code, status.code)
+            assertEquals("ERP do Itaú encontra-se indisponível", status.description)
         }
     }
 
@@ -198,20 +206,17 @@ internal class ChavePixEndpointTest(
             .setTipoConta(TipoConta.CONTA_POUPANCA)
             .build()
 
-        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenThrow(HttpClientException(":8082"))
+        Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenReturn(HttpResponse.ok())
 
-        val bcbRequest = CreatePixKeyRequest(TipoChave.EMAIL, "fulano@zup.com.br", TipoConta.CONTA_POUPANCA)
-
-        // não está lançando exceção quando eu mando um thenThrow aqui
-        Mockito.`when`(bcbClient.cadastraBcb(bcbRequest)).thenReturn(HttpResponse.ok())
+        Mockito.`when`(bcbClient.cadastraBcb(AnyPixKey.paraSVGS(TipoChave.EMAIL))).thenThrow(HttpClientException(":8082"))
 
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(request)
         }
 
         with(error) {
-            assertEquals(Status.INTERNAL.code, status.code)
-            assertEquals("Sistema do BCB encontra-se indisponível.", status.description)
+            assertEquals(Status.UNAVAILABLE.code, status.code)
+            assertEquals("Sistema do BCB encontra-se indisponível", status.description)
         }
     }
 
@@ -225,10 +230,8 @@ internal class ChavePixEndpointTest(
             .setTipoConta(TipoConta.CONTA_POUPANCA)
             .build()
 
-        val bcbRequest = CreatePixKeyRequest(TipoChave.EMAIL, "fulano@zup.com.br", TipoConta.CONTA_POUPANCA)
-
         Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenThrow(RuntimeException())
-        Mockito.`when`(bcbClient.cadastraBcb(bcbRequest)).thenReturn(HttpResponse.ok())
+        Mockito.`when`(bcbClient.cadastraBcb(AnyPixKey.paraSVGS(TipoChave.EMAIL))).thenReturn(HttpResponse.ok())
 
         val error = assertThrows<StatusRuntimeException> {
             grpcCliente.cadastra(request)
@@ -244,18 +247,6 @@ internal class ChavePixEndpointTest(
     @Test
     internal fun `deve receber chave aleatoria do BCB`() {
         Mockito.`when`(itauErpClient.consulta(Mockito.anyString())).thenReturn(HttpResponse.ok())
-
-        // nunca vai gerar os mesmos valores aleatorios que a keyRequest gera lá no endpoint.
-            // preciso do Any aqui, de algum jeito.
-        val bcbRequest = CreatePixKeyRequest(TipoChave.CHAVE_ALEATORIA, "", TipoConta.CONTA_POUPANCA)
-
-        val response = grpcCliente.cadastra(
-            ChavePixRequest.newBuilder()
-                .setClientId("0d1bb194-3c52-4e67-8c35-a93c0af9284f")
-                .setTipoChave(TipoChave.CHAVE_ALEATORIA)
-                .setTipoConta(TipoConta.CONTA_POUPANCA)
-                .build()
-        )
 
         val bcbKeyResponse = CreatePixKeyResponse(
             keyType = KeyType.RANDOM,
@@ -273,7 +264,16 @@ internal class ChavePixEndpointTest(
             ),
             createdAt = LocalDateTime.now()
         )
-        Mockito.`when`(bcbClient.cadastraBcb(bcbRequest)).thenReturn(HttpResponse.created(bcbKeyResponse))
+        val bcbHttpResponse : HttpResponse<CreatePixKeyResponse> = HttpResponse.created(bcbKeyResponse)
+        Mockito.`when`(bcbClient.cadastraBcb(AnyPixKey.paraSVGS(TipoChave.CHAVE_ALEATORIA))).thenReturn(bcbHttpResponse)
+
+        val response = grpcCliente.cadastra(
+            ChavePixRequest.newBuilder()
+                .setClientId("0d1bb194-3c52-4e67-8c35-a93c0af9284f")
+                .setTipoChave(TipoChave.CHAVE_ALEATORIA)
+                .setTipoConta(TipoConta.CONTA_POUPANCA)
+                .build()
+        )
 
         assertTrue(chavePixRepository.existsByChavePix(bcbKeyResponse.key))
     }
@@ -293,6 +293,38 @@ internal class ChavePixEndpointTest(
         @Singleton
         fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): DesafioPixServiceGrpc.DesafioPixServiceBlockingStub? {
             return DesafioPixServiceGrpc.newBlockingStub(channel)
+        }
+    }
+
+    // nome do objeto e como ele será chamado -> AnyPixKey.para(TipoChave.CPF))
+    object AnyPixKey {
+
+        // gera um objeto genérico CreatePixKeyRequest com uma conta poupanca e o tipoChave informado
+        fun paraSVGS(tipoChave: TipoChave): CreatePixKeyRequest {
+            if (tipoChave == TipoChave.CPF) {
+                paraCpf("12345678901")
+            }
+            reportMatcher(InstanceOf(CreatePixKeyRequest::class.java, "<any createPixKeyRequest>"))
+            return CreatePixKeyRequest(tipoChave, null, TipoConta.CONTA_POUPANCA)
+        }
+
+        fun paraCACC(tipoChave: TipoChave): CreatePixKeyRequest {
+            if (tipoChave == TipoChave.CPF) {
+                paraCpf("12345678901")
+            }
+            reportMatcher(InstanceOf(CreatePixKeyRequest::class.java, "<any createPixKeyRequest>"))
+            return CreatePixKeyRequest(tipoChave, null, TipoConta.CONTA_CORRENTE)
+        }
+
+        // gera um objeto genérico CreatePixKeyRequest recebendo um CPF
+        fun paraCpf(chave: String): CreatePixKeyRequest {
+            reportMatcher(InstanceOf(CreatePixKeyRequest::class.java, "<any createPixKeyRequest>"))
+            return CreatePixKeyRequest(TipoChave.CPF, chave, TipoConta.CONTA_POUPANCA)
+        }
+
+        // cópia de como o Mockito cria os métodos .any<OutraClasse)
+        private fun reportMatcher(matcher: ArgumentMatcher<*>) {
+            ThreadSafeMockingProgress.mockingProgress().argumentMatcherStorage.reportMatcher(matcher)
         }
     }
 

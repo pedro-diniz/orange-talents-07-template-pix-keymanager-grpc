@@ -25,7 +25,7 @@ class OwnerRequest(tipoChave: TipoChave, chave: String?) {
 
     }
 
-    private fun verificaCpf(tipoChave: TipoChave, chave: String?) : String {
+    private fun verificaCpf(tipoChave: TipoChave, chave: String?) : String? {
         if (tipoChave == TipoChave.CPF) {
             return chave!!
         }

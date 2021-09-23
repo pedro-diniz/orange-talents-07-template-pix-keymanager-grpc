@@ -156,7 +156,7 @@ internal class ChavePixValidatorTest(
         val chavePix = novaChavePixDto.toModel()
 
         assertTrue(setErros.isEmpty())
-        assertTrue(chavePix.chavePix.isNotBlank())
+        assertTrue(chavePix.chavePix.isBlank())
 
     }
 

@@ -22,10 +22,6 @@ data class NovaChavePixDto(
 ) {
     fun toModel(): ChavePix {
 
-        if (tipoChave == TipoChave.CPF && chavePix!!.contains("-") && chavePix!!.contains(".")) {
-            chavePix = trimCpf()
-        }
-
         return ChavePix(
             clientId, tipoChave, chavePix!!, tipoConta
         )
@@ -38,14 +34,5 @@ data class NovaChavePixDto(
             tipoConta = tipoConta,
         )
     }
-
-    fun trimCpf() : String{
-        return chavePix!!.replace(".","").replace("-", "")
-    }
-
-    override fun toString(): String {
-        return "NovaChavePixDto(clientId='$clientId', tipoChave=$tipoChave, tipoConta=$tipoConta)"
-    }
-
 
 }

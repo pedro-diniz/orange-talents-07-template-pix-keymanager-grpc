@@ -22,11 +22,7 @@ class CreatePixKeyRequest(tipoChave: TipoChave, chave: String?, tipoConta: TipoC
             TipoChave.CPF -> return KeyType.CPF
             TipoChave.TELEFONE_CELULAR -> return KeyType.PHONE
             TipoChave.EMAIL -> return KeyType.EMAIL
-            TipoChave.CHAVE_ALEATORIA -> {
-                limpaChaveAleatoria()
-                return KeyType.RANDOM
-            }
-            else -> throw IllegalStateException("tipo de chave não permitido foi recebido")
+            else -> return KeyType.RANDOM // só deve aceitar aleatória, pois unknown é barrado na validação
         }
 
     }
@@ -35,9 +31,6 @@ class CreatePixKeyRequest(tipoChave: TipoChave, chave: String?, tipoConta: TipoC
         return BankAccountRequest(tipoConta = tipoConta)
     }
 
-    private fun limpaChaveAleatoria() {
-        key = null
-    }
 
     override fun toString(): String {
         return "CreatePixKeyRequest(keyType=$keyType, key=$key, bankAccount=$bankAccount, owner=$owner)"

@@ -41,7 +41,7 @@ dependencies {
     implementation("io.micronaut:micronaut-validation")
     implementation("org.hibernate:hibernate-validator:7.0.1.Final")
     testImplementation("com.h2database:h2")
-    testImplementation("org.mockito:mockito-core:3.8.0")
+    testImplementation("org.mockito:mockito-core")
 
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 

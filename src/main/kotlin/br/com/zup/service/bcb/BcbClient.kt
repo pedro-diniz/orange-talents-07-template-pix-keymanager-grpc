@@ -18,6 +18,6 @@ interface BcbClient {
     fun cadastraBcb(@Body keyRequest: CreatePixKeyRequest) : HttpResponse<CreatePixKeyResponse>
 
     @Delete("/{key}")
-    fun apagaBcb(@PathVariable key:String, @Body keyRequest: DeletePixKeyRequest) : HttpResponse<DeletePixKeyResponse>
+    fun apagaBcb(@PathVariable key:String, @Body keyRequest: DeletePixKeyRequest) : HttpResponse<DeletePixKeyResponse?>
 
 }

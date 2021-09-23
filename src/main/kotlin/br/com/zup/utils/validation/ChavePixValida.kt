@@ -29,6 +29,7 @@ class ChavePixValidator : ConstraintValidator<ChavePixValida, NovaChavePixDto> {
     ): Boolean {
 
         if (value.tipoConta == TipoConta.TIPO_CONTA_UNKNOWN) {
+            context.messageTemplate("tipo de chave inválido")
             return false
         }
 

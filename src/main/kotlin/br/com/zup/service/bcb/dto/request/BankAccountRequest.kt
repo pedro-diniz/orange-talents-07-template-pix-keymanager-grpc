@@ -27,14 +27,12 @@ class BankAccountRequest(tipoConta: TipoConta) {
     fun converteTipoConta(tipoConta: TipoConta): AccountType {
         when(tipoConta) {
             TipoConta.CONTA_CORRENTE -> return AccountType.CACC
-            TipoConta.CONTA_POUPANCA -> return AccountType.SVGS
-            else -> throw IllegalStateException("tipo de conta inválido foi recebido")
+            else -> return AccountType.SVGS // TIPO_CONTA_UNKNOWN já é validado no @ChavePixValida
         }
     }
 
     override fun toString(): String {
         return "BankAccountRequest(participant='$participant', branch='$branch', accountNumber='$accountNumber', accountType=$accountType)"
     }
-
 
 }
