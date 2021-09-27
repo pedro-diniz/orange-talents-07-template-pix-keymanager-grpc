@@ -42,8 +42,7 @@ internal class ExclusaoChavePixEndpointTest (
     val chavePixRepository: ChavePixRepository
 ) {
 
-    @Inject
-    lateinit var itauErpClient: ItauErpClient
+    @Inject lateinit var itauErpClient: ItauErpClient
     @Inject lateinit var bcbClient: BcbClient
 
     @BeforeEach

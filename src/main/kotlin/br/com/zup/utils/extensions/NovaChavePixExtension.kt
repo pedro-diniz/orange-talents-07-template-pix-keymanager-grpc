@@ -1,9 +1,7 @@
 package br.com.zup.utils.extensions
 
 import br.com.zup.ChavePixRequest
-import br.com.zup.ExclusaoChavePixRequest
 import br.com.zup.TipoChave
-import br.com.zup.endpoint.dto.request.ExclusaoChavePixDto
 import br.com.zup.endpoint.dto.request.NovaChavePixDto
 import io.micronaut.validation.validator.Validator
 import javax.validation.ConstraintViolationException
@@ -40,19 +38,3 @@ fun ChavePixRequest.validate(validator: Validator): NovaChavePixDto {
     }
 
 }
-
-fun ExclusaoChavePixRequest.validate(validator: Validator) : ExclusaoChavePixDto {
-
-    val exclusaoChavePix = ExclusaoChavePixDto(
-        clientId = clientId,
-        chavePix = chavePix
-    )
-    validator.validate(exclusaoChavePix).let {
-        if (it.isNotEmpty()) {
-            throw ConstraintViolationException(it)
-        }
-        return exclusaoChavePix
-    }
-
-}
-

@@ -34,15 +34,15 @@ class ChavePixEndpoint(
         // 1. valido o input
         logger.info("Requisição de nova chave recebida")
         logger.info("Validando a requisição de chave")
-        val novaChavePix = request.validate(validator)
+        val solicitacaoCadastro = request.validate(validator)
 
         logger.info("Parâmetros de chave validados")
         logger.info("Verificando duplicidade de chave Pix")
 
         // 2. vejo se a chave já existe
-        if (!novaChavePix.chavePix.isNullOrBlank() && repository.existsByChavePix(novaChavePix.chavePix!!)) {
+        if (!solicitacaoCadastro.chavePix.isNullOrBlank() && repository.existsByChavePix(solicitacaoCadastro.chavePix!!)) {
             logger.error("Chave pix já cadastrada")
-            throw ChaveExistenteException("chave pix ${novaChavePix.chavePix} existente")
+            throw ChaveExistenteException("chave pix ${solicitacaoCadastro.chavePix} existente")
         }
         logger.info("Chave pix não existente. Validando dados do cliente")
 
@@ -56,20 +56,20 @@ class ChavePixEndpoint(
         logger.info("Dados do cliente validados. Comunicando com o BCB")
 
         // 4. cliente existe? chave pix válida? bora comunicar com o BCB
-        val bcbKeyRequest = novaChavePix.toBcbRequest()
+        val bcbKeyRequest = solicitacaoCadastro.toBcbRequest()
         println("bcbRequest do endpoint: ${bcbKeyRequest.toString()}")
 
         val consultaBcb = bcbClient.cadastraBcb(bcbKeyRequest)
 
         // 5. tudo passou? converto pro modelo e salvo a chave
-        if (novaChavePix.tipoChave == TipoChave.CHAVE_ALEATORIA) {
+        if (solicitacaoCadastro.tipoChave == TipoChave.CHAVE_ALEATORIA) {
             logger.info("Recebendo a chave aleatória criada pelo BCB")
-            novaChavePix.chavePix = (consultaBcb.body() as CreatePixKeyResponse).key
+            solicitacaoCadastro.chavePix = (consultaBcb.body() as CreatePixKeyResponse).key
         } else {
             logger.info("Chave pix validada pelo BCB")
         }
 
-        val chavePix = novaChavePix.toModel()
+        val chavePix = solicitacaoCadastro.toModel()
 
         logger.info("Salvando a nova chave pix")
         repository.save(chavePix)

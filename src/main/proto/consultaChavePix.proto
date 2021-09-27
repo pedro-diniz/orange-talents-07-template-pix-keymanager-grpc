@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "br.com.zup";
+option java_outer_classname = "ConsultaChavePix";
+option objc_class_prefix = "HLW";
+
+import "google/protobuf/timestamp.proto";
+
+package br.com.zup;
+
+service ConsultaChavePixService {
+  rpc consultaChave (ConsultaChavePixRequest) returns (ConsultaChavePixResponse) {}
+}
+
+message BankAccount {
+  string participant = 1;
+  string branch = 2;
+  string accountNumber = 3;
+  string accountType = 4;
+}
+
+message Owner {
+  string type = 1;
+  string name = 2;
+  string taxIdNumber = 3;
+}
+
+message ConsultaChavePixRequest {
+  int64 pixId = 1;
+  string clientId = 2;
+  string chavePix = 3;
+}
+
+message ConsultaChavePixResponse {
+  int64 pixId = 1;
+  string clientId = 2;
+  string keyType = 3;
+  string key = 4;
+  BankAccount bankAccount = 5;
+  Owner owner = 6;
+  google.protobuf.Timestamp createdAt = 7;
+}

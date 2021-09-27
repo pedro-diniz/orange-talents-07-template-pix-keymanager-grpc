@@ -24,6 +24,7 @@ class ErrorAroundHandlerInterceptor : MethodInterceptor<Any, Any> {
             val responseObserver = context.parameterValues[1] as StreamObserver<*>
 
             val status = when(ex) {
+                is IllegalArgumentException -> Status.INVALID_ARGUMENT.withCause(ex).withDescription(ex.message)
                 is ConstraintViolationException -> Status.INVALID_ARGUMENT.withCause(ex).withDescription("dados de entrada inválidos")
                 is ChaveExistenteException -> Status.ALREADY_EXISTS.withCause(ex).withDescription(ex.message)
                 is ChaveInexistenteException -> Status.NOT_FOUND.withCause(ex).withDescription(ex.message)
