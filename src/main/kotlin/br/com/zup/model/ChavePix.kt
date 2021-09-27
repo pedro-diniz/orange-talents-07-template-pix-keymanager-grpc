@@ -1,7 +1,10 @@
 package br.com.zup.model
 
+import br.com.zup.ItemChavePixResponse
 import br.com.zup.TipoChave
 import br.com.zup.TipoConta
+import br.com.zup.utils.convertToProtobufTimestamp
+import java.time.LocalDateTime
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
@@ -17,5 +20,18 @@ class ChavePix(
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
+    val criadaEm = LocalDateTime.now()
+
+    fun toGrpcResponse() : ItemChavePixResponse {
+
+        return ItemChavePixResponse.newBuilder()
+            .setPixId(id!!)
+            .setClientId(clientId)
+            .setKeyType(tipoChave.toString())
+            .setKey(chavePix)
+            .setAccountType(tipoConta.toString())
+            .setCreatedAt(convertToProtobufTimestamp(criadaEm))
+            .build()
+    }
 
 }

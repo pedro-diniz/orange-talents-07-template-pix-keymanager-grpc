@@ -8,19 +8,17 @@ import br.com.zup.repository.ChavePixRepository
 import br.com.zup.service.bcb.BcbClient
 import br.com.zup.service.bcb.dto.response.PixKeyDetailResponse
 import br.com.zup.service.erp.ItauErpClient
+import br.com.zup.utils.convertToProtobufTimestamp
 import br.com.zup.utils.exceptionhandler.exceptions.ChaveDeOutroClienteException
 import br.com.zup.utils.exceptionhandler.exceptions.ChaveInexistenteException
 import br.com.zup.utils.exceptionhandler.exceptions.ClienteNaoEncontradoException
 import br.com.zup.utils.exceptionhandler.handler.ErrorAroundHandler
 import br.com.zup.utils.extensions.validate
-import com.google.protobuf.Timestamp
 import io.grpc.stub.StreamObserver
 import io.micronaut.http.HttpResponse
 import io.micronaut.validation.validator.Validator
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.*
 
 @Singleton @ErrorAroundHandler
@@ -56,7 +54,7 @@ class ConsultaChavePixEndpoint (val repository: ChavePixRepository,
             logger.info("Requisição de consulta interna")
 
             logger.info(solicitaoConsulta.toString())
-            // 2.1. vejo se a chave já existe
+            // 2.1. vejo se a chave existe
             when {
                 solicitaoConsulta.chavePix.isNullOrBlank() -> { // pesquisa por pixId
                     possivelChavePix = repository.findById(solicitaoConsulta.pixId)
@@ -96,7 +94,6 @@ class ConsultaChavePixEndpoint (val repository: ChavePixRepository,
 
                 // 2.5. a chave existe e o solicitante é o dono? bora consultar no o BCB
                 chavePixConsultada = chavePixLocal.chavePix
-//                consultaBcb = bcbClient.consultaBcb(chavePixConsultada)
             }
 
         }
@@ -105,7 +102,6 @@ class ConsultaChavePixEndpoint (val repository: ChavePixRepository,
             logger.info("Requisição de consulta externa")
 
             chavePixConsultada = solicitaoConsulta.chavePix
-//            consultaBcb = bcbClient.consultaBcb(chavePixConsultada)
         }
 
         consultaBcb = bcbClient.consultaBcb(chavePixConsultada)
@@ -116,7 +112,7 @@ class ConsultaChavePixEndpoint (val repository: ChavePixRepository,
         }
         logger.info("Chave pix encontrada no BCB")
 
-        // 6. tudo passou? devolvo a chave pix
+        // 3. tudo passou? devolvo a chave pix
         val pixKeyDetails = consultaBcb.body()!!
 
         val pixGrpcResponse = ConsultaChavePixResponse.newBuilder().let {
@@ -137,7 +133,7 @@ class ConsultaChavePixEndpoint (val repository: ChavePixRepository,
                 .setType(pixKeyDetails.owner.type.toString())
                 .setName(pixKeyDetails.owner.name)
                 .setTaxIdNumber(pixKeyDetails.owner.taxIdNumber))
-            it.setCreatedAt(convertToTimestamp(pixKeyDetails.createdAt))
+            it.setCreatedAt(convertToProtobufTimestamp(pixKeyDetails.createdAt))
         }
             .build()
 
@@ -146,12 +142,4 @@ class ConsultaChavePixEndpoint (val repository: ChavePixRepository,
 
     }
 
-    fun convertToTimestamp(date: LocalDateTime): Timestamp {
-        val instant = date.toInstant(ZoneOffset.UTC)
-
-        return Timestamp.newBuilder()
-            .setSeconds(instant.epochSecond)
-            .setNanos(instant.nano)
-            .build()
-    }
 }

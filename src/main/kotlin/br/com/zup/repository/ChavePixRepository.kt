@@ -9,7 +9,7 @@ import java.util.*
 interface ChavePixRepository : JpaRepository<ChavePix, Long> {
 
     fun existsByChavePix(chavePix: String) : Boolean
-    fun countByChavePix(chavePix: String) : Int
     fun findByChavePix(chavePix: String) : Optional<ChavePix>
+    fun findByClientId(clientId: String) : List<ChavePix>
 
 }
