@@ -29,7 +29,7 @@ class ErrorAroundHandlerInterceptor : MethodInterceptor<Any, Any> {
                 is ChaveExistenteException -> Status.ALREADY_EXISTS.withCause(ex).withDescription(ex.message)
                 is ChaveInexistenteException -> Status.NOT_FOUND.withCause(ex).withDescription(ex.message)
                 is ClienteNaoEncontradoException -> Status.NOT_FOUND.withCause(ex).withDescription(ex.message)
-                is ChaveDeOutroClienteException -> Status.INVALID_ARGUMENT.withCause(ex).withDescription(ex.message)
+                is ChaveDeOutroClienteException -> Status.PERMISSION_DENIED.withCause(ex).withDescription(ex.message)
                 is DeleteProibidoException -> Status.PERMISSION_DENIED.withCause(ex).withDescription(ex.message)
                 is HttpClientException -> Status.UNAVAILABLE.withCause(ex).withDescription(analisaSistemaOffline(ex))
                 else -> Status.INTERNAL.withCause(ex).withDescription("Algo deu muito ruim")
