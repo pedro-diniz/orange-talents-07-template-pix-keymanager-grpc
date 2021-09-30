@@ -14,6 +14,7 @@ import br.com.zup.utils.exceptionhandler.exceptions.ChaveInexistenteException
 import br.com.zup.utils.exceptionhandler.exceptions.ClienteNaoEncontradoException
 import br.com.zup.utils.exceptionhandler.handler.ErrorAroundHandler
 import br.com.zup.utils.extensions.validate
+import br.com.zup.utils.getNameFromIspb
 import io.grpc.stub.StreamObserver
 import io.micronaut.http.HttpResponse
 import io.micronaut.validation.validator.Validator
@@ -114,8 +115,10 @@ class ConsultaChavePixEndpoint (val repository: ChavePixRepository,
 
         // 3. tudo passou? devolvo a chave pix
         val pixKeyDetails = consultaBcb.body()!!
+        println(pixKeyDetails)
 
-        val pixGrpcResponse = ConsultaChavePixResponse.newBuilder().let {
+        val pixGrpcResponse = ConsultaChavePixResponse.newBuilder()
+            .let {
 
             if (possivelChavePix.isPresent) {
                 it.setPixId(chavePixLocal.id!!)
@@ -124,15 +127,17 @@ class ConsultaChavePixEndpoint (val repository: ChavePixRepository,
 
             it.setKeyType(pixKeyDetails.keyType.toString())
             it.setKey(pixKeyDetails.key)
-            it.setBankAccount(BankAccount.newBuilder()
-                .setParticipant(pixKeyDetails.bankAccount.participant)
-                .setBranch(pixKeyDetails.bankAccount.branch)
-                .setAccountNumber(pixKeyDetails.bankAccount.accountNumber)
-                .setAccountType(pixKeyDetails.bankAccount.accountType.toString()))
-            it.setOwner(Owner.newBuilder()
-                .setType(pixKeyDetails.owner.type.toString())
-                .setName(pixKeyDetails.owner.name)
-                .setTaxIdNumber(pixKeyDetails.owner.taxIdNumber))
+            it.setConta(Conta.newBuilder()
+
+                .setTitular(Titular.newBuilder()
+                    .setNome(pixKeyDetails.owner.name)
+                    .setCpf(pixKeyDetails.owner.taxIdNumber))
+
+                .setNomeInstituicao(getNameFromIspb(pixKeyDetails.bankAccount.participant))
+                .setAgencia(pixKeyDetails.bankAccount.branch)
+                .setNumeroConta(pixKeyDetails.bankAccount.accountNumber)
+                .setTipoConta(pixKeyDetails.bankAccount.accountType.toString())
+                )
             it.setCreatedAt(convertToProtobufTimestamp(pixKeyDetails.createdAt))
         }
             .build()

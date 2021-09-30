@@ -13,17 +13,17 @@ service ConsultaChavePixService {
   rpc consultaChave (ConsultaChavePixRequest) returns (ConsultaChavePixResponse) {}
 }
 
-message BankAccount {
-  string participant = 1;
-  string branch = 2;
-  string accountNumber = 3;
-  string accountType = 4;
+message Titular {
+  string nome = 1;
+  string cpf = 2;
 }
 
-message Owner {
-  string type = 1;
-  string name = 2;
-  string taxIdNumber = 3;
+message Conta {
+  Titular titular = 1;
+  string nomeInstituicao = 2;
+  string agencia = 3;
+  string numeroConta = 4;
+  string tipoConta = 5;
 }
 
 message ConsultaChavePixRequest {
@@ -37,7 +37,6 @@ message ConsultaChavePixResponse {
   string clientId = 2;
   string keyType = 3;
   string key = 4;
-  BankAccount bankAccount = 5;
-  Owner owner = 6;
-  google.protobuf.Timestamp createdAt = 7;
+  Conta conta = 5;
+  google.protobuf.Timestamp createdAt = 6;
 }

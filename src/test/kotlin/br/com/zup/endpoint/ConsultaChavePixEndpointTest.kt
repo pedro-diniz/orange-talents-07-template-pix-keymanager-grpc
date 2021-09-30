@@ -237,7 +237,7 @@ internal class ConsultaChavePixEndpointTest(
         }
 
         with(error) {
-            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals(Status.PERMISSION_DENIED.code, status.code)
             assertEquals("Chave pix ${request.chavePix} não pertencente ao solicitante", status.description)
         }
 
